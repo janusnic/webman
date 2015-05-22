@@ -1,0 +1,32 @@
+{% extends "blog/base.html" %}
+{% block title %} {{ block.super }} - SECTION NAME {% endblock %}
+{% block content %}
+
+
+<h1>Blog home page</h1>
+<h2>{{ company | upper }}</h2>
+<p><b>{{ author_name|capfirst }}</b></p>
+
+{% comment %}
+{{ first|add:second}}
+
+{% load listlastnews %}
+     {% lastnews %}
+{% for article in article_list %}
+	<div>
+		<h2>{{ pub_date|date:"SHORT_DATE_FORMAT" }} <a href="{% url 'show' %}">
+		{{ article.title }}
+		</a></h2>
+		
+		{% lorem 1 p random %}
+		
+	</div>
+	{% endfor %}
+{% endcomment %}
+       <div id="postslist">
+                {% for post in posts %}
+                <p><a href="/blog/posts/{{ post.slug }}/">{{ post.title }}</a></p>
+                {% endfor %}
+        </div>
+
+{% endblock %}

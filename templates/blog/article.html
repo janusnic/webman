@@ -1,0 +1,10 @@
+{% extends "blog/base.html" %}
+
+{% block title %}
+        {{ title }} - {{ block.super }}
+{% endblock %}
+
+{% block content %}
+        {{ author_name }}
+        {% lorem 1 p random %}
+{% endblock %}
