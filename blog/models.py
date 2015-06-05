@@ -1,12 +1,48 @@
 from django.db import models
+from ckeditor.fields import RichTextField
 from django.contrib.auth.models import User
-# Create your models here.
+from utils import helpers
 
 BLOG_ITEM_STATUS = (
         ('0', 'Dratf'),
         ('1', 'Published'),
         ('2', 'Not Published'),
 )
+
+ITEM_STATUS_PUBLISHED = 1
+ITEM_STATUS_HIDDEN = 2
+ITEM_STATUS_CHOICES = (
+    (ITEM_STATUS_PUBLISHED, "Published"),
+    (ITEM_STATUS_HIDDEN, "Hidden"),
+)
+
+def get_blog_file_name(instance, filename):
+    return helpers.get_file_filename(instance, filename, "blog")
+
+class Slider(models.Model):
+    status = models.IntegerField(choices=ITEM_STATUS_CHOICES, default=ITEM_STATUS_PUBLISHED)
+    title = models.CharField(max_length=32)
+    description = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return u"{}".format(self.title)
+
+    def __unicode__(self):
+        return self.__str__()
+
+
+class Slide(models.Model):
+    status = models.IntegerField(choices=ITEM_STATUS_CHOICES, default=ITEM_STATUS_PUBLISHED)
+    title = models.CharField(max_length=32)
+    description = models.TextField(null=True, blank=True)
+    image = models.ImageField(max_length=1024, null=True, blank=True, upload_to=get_blog_file_name)
+    related_slider = models.ForeignKey(Slider)
+
+    def __str__(self):
+        return u"{}".format(self.title)
+
+    def __unicode__(self):
+        return self.__str__()
 
 class Category(models.Model):
 	name = models.CharField(max_length=128, unique=True)
@@ -23,7 +59,7 @@ class Post(models.Model):
 	body = models.TextField()
 	url = models.URLField()
 	views = models.IntegerField(default=0)
-	status = models.CharField(max_length=1, choices=BLOG_ITEM_STATUS, default='0')
+	status = models.IntegerField(choices=ITEM_STATUS_CHOICES, default=ITEM_STATUS_PUBLISHED)
 	updated = models.DateTimeField(auto_now=True)
 	created = models.DateTimeField(auto_now_add=True)
 
@@ -32,6 +68,27 @@ class Post(models.Model):
 
 	def __unicode__(self):
 		return self.title
+
+class Page(models.Model):
+    status = models.IntegerField(choices=ITEM_STATUS_CHOICES, default=ITEM_STATUS_PUBLISHED)
+    title = models.CharField(max_length=32)
+    slug = models.SlugField(unique=True)
+    #content = models.TextField()
+    content = RichTextField()
+    #widgets = models.ManyToManyField(Widget, null=True, blank=True)
+    featured_image = models.ImageField(max_length=1024, null=True, blank=True, upload_to=get_blog_file_name)
+    related_slider = models.ForeignKey(Slider, null=True, blank=True)
+
+    def __str__(self):
+        return u"{}".format(self.title)
+
+    def __unicode__(self):
+        return self.__str__()
+
+#    def get_widgets(self):
+#        return self.widgets.all()
+
+
 
 class UserProfile(models.Model):
     # This line is required. Links UserProfile to a User model instance.

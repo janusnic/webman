@@ -12,5 +12,6 @@ urlpatterns = [
     url(r'^logout/$', 'blog.views.user_logout', name='logout'),
     url(r"^add_comment/(?P<postslug>.*)/$", "blog.views.add_comment"),
     url(r"^month/(\d+)/(\d+)/$", "blog.views.month"),
+    url(r'^pages/(?P<pageslug>.*)/$', 'blog.views.page'),
    
 ]

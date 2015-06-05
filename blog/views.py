@@ -1,7 +1,7 @@
 from django.shortcuts import render, render_to_response
 from django.template import RequestContext
-from django.http import HttpResponse 
-from blog.models import Category, Post, Comment
+from django.http import HttpResponse
+from blog.models import Category, Post, Comment, Page
 from blog.forms import UserForm, UserProfileForm, CommentForm
 
 from django.contrib.auth import authenticate, login
@@ -9,30 +9,30 @@ from django.contrib.auth import logout
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.template.context_processors import csrf
-from django.core.paginator import Paginator, InvalidPage, EmptyPage 
+from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.core.urlresolvers import reverse
-import time 
-from calendar import month_name 
+import time
+from calendar import month_name
 
 def index(request):
 	# category_list = Category.objects.order_by('name')
     category_list = Category.objects.all().order_by('name')
     # post_list = Post.objects.order_by('title')
-    posts = Post.objects.all().order_by("-created") 
+    posts = Post.objects.all().order_by("-created")
     # post_list = Post.objects.all().order_by('title')
-    paginator = Paginator(posts, 2) 
+    paginator = Paginator(posts, 2)
 
-    try: page = int(request.GET.get("page", '1')) 
-    except ValueError: page = 1 
+    try: page = int(request.GET.get("page", '1'))
+    except ValueError: page = 1
 
-    try: 
-        posts = paginator.page(page) 
-    except (InvalidPage, EmptyPage): 
-        posts = paginator.page(paginator.num_pages) 
-	
+    try:
+        posts = paginator.page(page)
+    except (InvalidPage, EmptyPage):
+        posts = paginator.page(paginator.num_pages)
+
 	# context_dict = {'categories': category_list, 'posts': post_list}
 	# return render_to_response('blog/index.html', context_dict)
-    context_dict = {'categories': category_list, 'posts': posts, 'months':mkmonth_lst(),  'archive':True} 
+    context_dict = {'categories': category_list, 'posts': posts, 'months':mkmonth_lst(),  'archive':True}
     return render_to_response("blog/index.html", context_dict)
 	# return render(request, 'blog/index.html', context_dict)
 
@@ -47,6 +47,12 @@ def category(reqeust, categoryslug):
 	context = {'posts': posts}
 	return render_to_response('blog/singlecategory.html', context)
 	#return render_to_response('blog/singlecategory.html')
+
+def page(request, pageslug):
+    page = Page.objects.get(slug=pageslug)
+    context = {'page': page, "user":request.user}
+    return render_to_response('blog/page.html', context)
+
 
 def register(request):
 
@@ -171,13 +177,13 @@ def index1(request):
 	c.author_name = 'Jhon Smith'
 	c.pub_date = datetime.datetime.now()
 	c.article_list = [{'title':'Title1','text':'text1'},{'title':'Title2','text':'text2'},{'title':'Title3','text':'text3'}]
-	
+
 	return render(request, 'blog/index.html', c.__dict__)
 	#context_dict = {'title': "It's my blog", 'boldmessage': "I'am bold font from the context", 'datet':datet, 'first':first,'second':second,'article_list':article_list }
 	#return render(request, 'blog/index.html', context_dict)
 	#return render(request, 'blog/index.html')
-	# context = '<h2>Tango Blog is cool</h2> '+'Now is: '+str(datetime.datetime.now())  
-	# return HttpResponse(context) 
+	# context = '<h2>Tango Blog is cool</h2> '+'Now is: '+str(datetime.datetime.now())
+	# return HttpResponse(context)
 
 
 def show(request):
@@ -189,65 +195,65 @@ def show(request):
 	c.author_name = 'Jhon Smith'
 	c.pub_date = datetime.datetime.now()
 	c.article_list = [{'title':'Title1','text':'text1'},{'title':'Title2','text':'text2'},{'title':'Title3','text':'text3'}]
-	
+
 	return render(request, 'blog/article.html', c.__dict__)
 
-def add_comment(request, postslug): 
-    """Add a new comment.""" 
-    p = request.POST 
-    if p["body"]: 
-        author = request.user 
-        comment = Comment(post=Post.objects.get(slug=postslug)) 
-        cf = CommentForm(p, instance=comment) 
-        
-        cf.fields["author"].required = False 
-        comment = cf.save(commit=False) 
-        comment.author = author 
-        comment.save() 
+def add_comment(request, postslug):
+    """Add a new comment."""
+    p = request.POST
+    if p["body"]:
+        author = request.user
+        comment = Comment(post=Post.objects.get(slug=postslug))
+        cf = CommentForm(p, instance=comment)
+
+        cf.fields["author"].required = False
+        comment = cf.save(commit=False)
+        comment.author = author
+        comment.save()
     return HttpResponseRedirect('/blog/')
 
-def view(request, postslug): 
-    post = Post.objects.get(slug=postslug) 
-    comments = Comment.objects.filter(post=post) 
-    context = {'post': post, "comments":comments,"form":CommentForm(), "user":request.user} 
-    context.update(csrf(request)) 
-    return render_to_response('blog/singlepost.html', context) 
+def view(request, postslug):
+    post = Post.objects.get(slug=postslug)
+    comments = Comment.objects.filter(post=post)
+    context = {'post': post, "comments":comments,"form":CommentForm(), "user":request.user}
+    context.update(csrf(request))
+    return render_to_response('blog/singlepost.html', context)
 
-def mkmonth_lst(): 
-    """Make a list of months to show archive links.""" 
+def mkmonth_lst():
+    """Make a list of months to show archive links."""
 
-    if not Post.objects.count(): return [] 
+    if not Post.objects.count(): return []
 
-    # set up vars 
-    year, month = time.localtime()[:2] 
-    first = Post.objects.order_by("created")[0] 
-    fyear = first.created.year 
-    fmonth = first.created.month 
-    months = [] 
+    # set up vars
+    year, month = time.localtime()[:2]
+    first = Post.objects.order_by("created")[0]
+    fyear = first.created.year
+    fmonth = first.created.month
+    months = []
 
-    # loop over years and months 
-    for y in range(year, fyear-1, -1): 
-        start, end = 12, 0 
-        if y == year: start = month 
-        if y == fyear: end = fmonth-1 
+    # loop over years and months
+    for y in range(year, fyear-1, -1):
+        start, end = 12, 0
+        if y == year: start = month
+        if y == fyear: end = fmonth-1
 
-        for m in range(start, end, -1): 
-            months.append((y, m, month_name[m])) 
-    return months 
+        for m in range(start, end, -1):
+            months.append((y, m, month_name[m]))
+    return months
 
-def month(request, year, month): 
-    """Monthly archive.""" 
+def month(request, year, month):
+    """Monthly archive."""
 
-    posts = Post.objects.filter(created__year=year, created__month=month) 
-    
-    paginator = Paginator(posts, 2) 
-      
-    try: page = int(request.GET.get("page", '1')) 
-    except ValueError: page = 1 
+    posts = Post.objects.filter(created__year=year, created__month=month)
 
-    try: 
-        posts = paginator.page(page) 
-    except (InvalidPage, EmptyPage): 
-        posts = paginator.page(paginator.num_pages) 
+    paginator = Paginator(posts, 2)
 
-    return render_to_response("blog/list.html", dict(posts=posts, user=request.user, months=mkmonth_lst(),  archive=True)) 
+    try: page = int(request.GET.get("page", '1'))
+    except ValueError: page = 1
+
+    try:
+        posts = paginator.page(page)
+    except (InvalidPage, EmptyPage):
+        posts = paginator.page(paginator.num_pages)
+
+    return render_to_response("blog/list.html", dict(posts=posts, user=request.user, months=mkmonth_lst(),  archive=True))

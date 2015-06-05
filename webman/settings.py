@@ -39,6 +39,11 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django.contrib.flatpages',
+    'ckeditor',
+    'redactor',
+    #'tinymce',
+    #'flatpages_tinymce',
+    'django_select2',
     'blog',
 )
 
@@ -111,3 +116,26 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
+
+# Media files (user uploaded)
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'files/public/media')
+MEDIA_URL = '/media/'
+
+# CKEDITOR
+
+CKEDITOR_UPLOAD_PATH = 'plugin/ckeditor/'
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'Full',
+        'height': '100%',
+        'width': '100%',
+    },
+    'basic': {
+        'toolbar': 'Basic',
+        'height': '100%',
+        'width': '100%',
+    },
+}
+REDACTOR_OPTIONS = {'lang': 'en'}
+REDACTOR_UPLOAD = 'uploads/'
